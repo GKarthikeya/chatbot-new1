@@ -40,7 +40,7 @@ client.on('message', async message => {
             const password = parts[1].trim();
 
             try {
-                const response = await axios.post('https://chatbot-new1.onrender.com/login', {
+                const response = await axios.post('https://iare-sam-bot.onrender.com/login', {
                     from,
                     username,
                     password

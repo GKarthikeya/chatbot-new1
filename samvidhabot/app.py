@@ -22,4 +22,4 @@ def login():
     return jsonify({"result": result})
     
 if __name__ == "__main__":
-    app.run(host="https://chatbot-new1.onrender.com")
+    app.run(host="0.0.0.0",port=5000)

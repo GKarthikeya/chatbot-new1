@@ -9,17 +9,23 @@ def index():
 
 @app.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
+    try:
+        data = request.get_json()
+        username = data.get("username")
+        password = data.get("password")
 
-    print(f"🔐 Received login request for: {username}")
+        print(f"🔐 Received login request for: {username}")
 
-    if not username or not password:
-        return jsonify({"error": "Username and password required"}), 400
+        if not username or not password:
+            return jsonify({"error": "Username and password required"}), 400
 
-    result = get_attendance_summary(username, password)
-    return jsonify({"result": result})
+        result = get_attendance_summary(username, password)
+        return jsonify({"result": result})
+
+    except Exception as e:
+        print(f"❌ Error in /login route: {e}")
+        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
+
     
 if __name__ == "__main__":
     app.run(host="0.0.0.0",port=5000)

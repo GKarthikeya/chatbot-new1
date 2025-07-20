@@ -40,7 +40,7 @@ client.on('message', async message => {
             const password = parts[1].trim();
 
             try {
-                const response = await axios.post('https://iare-sam-bot.onrender.com/login', {
+                const response = await axios.post('https://web-production-c2452.up.railway.app/login', {
                     from,
                     username,
                     password
@@ -64,7 +64,7 @@ client.on('message', async message => {
         return;
     }
 
-    await message.reply("❓ Send `/start` to begin the login process.");
+    await message.reply("Send ->`( /start )` to begin the login process.");
 });
 
 client.initialize();

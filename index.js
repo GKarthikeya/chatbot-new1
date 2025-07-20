@@ -1,13 +1,20 @@
-const qrcode = require('qrcode-terminal');
+const express = require('express');
 const { Client } = require('whatsapp-web.js');
+const QRCode = require('qrcode');
 const axios = require('axios');
 
-const client = new Client();
-const userState = new Map(); // To track who is expected to send credentials
+const app = express();
+const port = process.env.PORT || 3000;
 
-client.on('qr', qr => {
-    qrcode.generate(qr, { small: true });
-    console.log("🔐 Scan the QR Code with your WhatsApp.");
+// Store the latest QR code
+let latestQR = null;
+
+const client = new Client();
+const userState = new Map();
+
+client.on('qr', async qr => {
+    latestQR = await QRCode.toDataURL(qr); // Store as base64 image
+    console.log('🔐 Visit /qr to scan the WhatsApp QR code.');
 });
 
 client.on('ready', () => {
@@ -20,16 +27,12 @@ client.on('message', async message => {
 
     console.log(`Message from ${from}: ${body}`);
 
-    // 1. Start command
     if (body.toLowerCase() === '/start') {
-        await message.reply(
-            "👋 Welcome! Please send your credentials in the format:\n\n`username // password`"
-        );
+        await message.reply("👋 Welcome! Please send your credentials in the format:\n\n`username // password`");
         userState.set(from, 'awaiting_credentials');
         return;
     }
 
-    // 2. Awaiting credentials
     if (userState.get(from) === 'awaiting_credentials') {
         const parts = body.split('//');
         if (parts.length === 2) {
@@ -37,7 +40,7 @@ client.on('message', async message => {
             const password = parts[1].trim();
 
             try {
-                const response = await axios.post('https://chatbot-new1.onrender.com/login', {
+                const response = await axios.post('https://cafaae1a69db.ngrok-free.app/login', {
                     from,
                     username,
                     password
@@ -48,21 +51,36 @@ client.on('message', async message => {
                     await message.reply(`${result}`);
                     userState.delete(from);
                 } else {
-                    await message.reply('⚠️ Login successful but no data was returned. Please try again later.');
+                    await message.reply('⚠️ Login successful but no data was returned.');
                 }
 
             } catch (error) {
                 console.error("❌ Error sending to server:", error.message);
-                await message.reply('🚫 Failed to contact the server. Please try again.');
+                await message.reply('🚫 Server error. Please try again.');
             }
         } else {
-            await message.reply("⚠️ Please send credentials in the format: `username // password`");
+            await message.reply("⚠️ Use format: `username // password`");
         }
         return;
     }
 
-    // 3. If no context
     await message.reply("❓ Send `/start` to begin the login process.");
 });
 
 client.initialize();
+
+// Web route to show QR code
+app.get('/qr', (req, res) => {
+    if (latestQR) {
+        res.send(`
+            <h2>Scan the QR code to login</h2>
+            <img src="${latestQR}" alt="QR Code" />
+        `);
+    } else {
+        res.send("QR code not generated yet. Please wait...");
+    }
+});
+
+app.listen(port, () => {
+    console.log(`🌐 Web server running at http://localhost:${port}`);
+});

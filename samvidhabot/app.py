@@ -20,5 +20,6 @@ def login():
 
     result = get_attendance_summary(username, password)
     return jsonify({"result": result})
-
-
+    
+if __name__ == "__main__":
+    app.run(host="https://chatbot-new1.onrender.com")
